@@ -4,6 +4,14 @@
 
 ---
 
+## 🌐 Live Demo
+
+- Production: [hack-tracker-lilac.vercel.app](https://hack-tracker-lilac.vercel.app/)
+- Preview (branch): [hack-tracker-git-master-dk-04ab.vercel.app](https://hack-tracker-git-master-dk-04ab.vercel.app/)
+- Preview (deployment): [hack-tracker-q4c3e9udf-dk-04ab.vercel.app](https://hack-tracker-q4c3e9udf-dk-04ab.vercel.app/)
+
+---
+
 ## ✨ Features
 
 - 🔐 **Multi-User Authentication & Strict Data Isolation**:
@@ -34,7 +42,7 @@
 - 📅 **Interactive Calendar View (`/calendar`)**:
   - Monthly calendar marking registration deadlines and round milestones with interactive detail popovers.
 - 👤 **User Profile & Data Management**:
-  - Profile statistics, quick 1-click multi-user testing account switchers (`User A: Alice` vs `User B: Bob`), JSON data export, and sample demo data loader.
+  - Profile statistics, quick 1-click multi-user testing account switchers (`User A: Alice` vs `User B: Bob`), JSON data export/**import** (merges an exported file back into your account), and sample demo data loader.
 - 🗑️ **Safe Deletion Flow**:
   - Custom delete confirmation modal with cascade deletion of rounds.
 
@@ -78,11 +86,30 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 ---
 
+## ☁️ Deploying to Vercel
+
+1. Push this repo to GitHub.
+2. In [Vercel](https://vercel.com), click **New Project** and import the repo. Build settings (Vite) are auto-detected.
+3. Go to **Project Settings → Environment Variables** and add:
+   ```
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+   ```
+   Apply to Production (and Preview if desired). These must match the values in your local `.env`.
+4. Deploy (or **Redeploy** if the project already existed — env vars only take effect on a new build).
+5. Open your deployed URL and check the Profile page confirms it's running against Supabase, not local mode.
+
+**Note on the free Supabase tier:** projects auto-pause after 7 days with zero API activity. Data isn't lost, but the site will error until someone manually resumes the project from the Supabase dashboard.
+
+**Migrating existing local data:** if you were using HackTrack in local mode (no `.env`/Supabase configured) before switching over, your old data lives only in that browser's `localStorage` and won't appear once Supabase is connected. Export it first (Profile → Export Data (JSON)) while still in local mode, then Import it (Profile → Import Data (JSON)) after logging into your Supabase-backed account.
+
+---
+
 ## 🔒 Multi-User Security Verification
 
 HackTrack enforces strict user isolation at the database layer (via RLS in Supabase) and application layer:
 1. Sign in as **User A (Alice)** (`alice@hacktrack.io`).
-2. Add a competition (e.g. *AQUATRONICS i2I*).
+2. Add a competition (e.g. *SIH*).
 3. Sign in as **User B (Bob)** (`bob@hacktrack.io`).
 4. User B's dashboard will show 0 competitions, and User B cannot view or edit User A's competition IDs.
 
