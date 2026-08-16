@@ -465,6 +465,52 @@ export const DataService = {
     return results;
   },
 
+  // Import competitions from a previously exported JSON file (merges with existing data)
+  async importCompetitions(userId: string, competitions: Competition[]): Promise<number> {
+    if (!userId) throw new Error('User ID is required');
+    if (!Array.isArray(competitions)) throw new Error('Invalid import file: expected an array of competitions');
+
+    let importedCount = 0;
+
+    for (const comp of competitions) {
+      if (!comp || typeof comp.name !== 'string' || !comp.name.trim()) {
+        continue; // skip malformed entries
+      }
+
+      const rounds: RoundInput[] = Array.isArray(comp.rounds)
+        ? comp.rounds.map((r) => ({
+            name: r.name,
+            date: r.date ?? null,
+            status: r.status,
+          }))
+        : [];
+
+      await this.createCompetition(
+        userId,
+        {
+          name: comp.name,
+          organizer: comp.organizer || '',
+          status: comp.status || 'Upcoming',
+          registration_deadline: comp.registration_deadline ?? null,
+          registration_fee: Number(comp.registration_fee) || 0,
+          payment_status: comp.payment_status || 'Not Required',
+          problem_statement: comp.problem_statement || '',
+          result: comp.result || 'Pending',
+          position: comp.position || '',
+          prize: comp.prize || '',
+          result_notes: comp.result_notes || '',
+          competition_url: comp.competition_url || '',
+          github_url: comp.github_url || '',
+          linkedin_url: comp.linkedin_url || '',
+        },
+        rounds
+      );
+      importedCount++;
+    }
+
+    return importedCount;
+  },
+
   // Clear all data for a specific user
   async clearUserData(userId: string): Promise<void> {
     if (!userId) return;

@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Database,
   Download,
+  Upload,
   Trash2,
   Sparkles,
   LogOut,
@@ -25,6 +26,8 @@ export const ProfilePage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isPurging, setIsPurging] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const loadStats = async () => {
     if (!user) return;
@@ -55,6 +58,33 @@ export const ProfilePage: React.FC = () => {
       addToast('✓ Data exported successfully', 'success');
     } catch (err: any) {
       addToast('Failed to export data', 'error');
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file || !user) return;
+
+    setIsImporting(true);
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const count = await DataService.importCompetitions(user.id, parsed);
+      if (count === 0) {
+        addToast('No valid competitions found in file', 'error');
+      } else {
+        addToast(`✓ Imported ${count} competition${count === 1 ? '' : 's'}`, 'success');
+      }
+      await loadStats();
+    } catch (err: any) {
+      addToast(err?.message || 'Failed to import file. Make sure it is a valid HackTrack export.', 'error');
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -287,7 +317,7 @@ export const ProfilePage: React.FC = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             onClick={handleExportData}
             className="btn-secondary justify-start p-3 text-xs"
@@ -295,6 +325,22 @@ export const ProfilePage: React.FC = () => {
             <Download className="w-4 h-4 text-indigo-400 shrink-0" />
             <span>Export Data (JSON)</span>
           </button>
+
+          <button
+            onClick={handleImportClick}
+            disabled={isImporting}
+            className="btn-secondary justify-start p-3 text-xs"
+          >
+            <Upload className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{isImporting ? 'Importing...' : 'Import Data (JSON)'}</span>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={handleImportFile}
+            className="hidden"
+          />
 
           <button
             onClick={handleSeedDemoData}
